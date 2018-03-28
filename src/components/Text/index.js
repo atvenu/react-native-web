@@ -77,7 +77,6 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     color: 'inherit',
     display: 'inline',
-    font: 'inherit',
     margin: 0,
     padding: 0,
     textDecorationLine: 'none',
