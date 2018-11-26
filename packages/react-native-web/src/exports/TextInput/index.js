@@ -5,7 +5,6 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @providesModule TextInput
  * @flow
  */
 
@@ -82,10 +81,12 @@ class TextInput extends Component<*> {
     clearTextOnFocus: bool,
     defaultValue: string,
     editable: bool,
+    inputAccessoryViewID: string,
     keyboardType: oneOf([
       'default',
       'email-address',
       'number-pad',
+      'numbers-and-punctuation',
       'numeric',
       'phone-pad',
       'search',
@@ -142,7 +143,7 @@ class TextInput extends Component<*> {
     editable: true,
     keyboardType: 'default',
     multiline: false,
-    numberOfLines: 2,
+    numberOfLines: 1,
     secureTextEntry: false,
     style: emptyObject
   };
@@ -161,6 +162,9 @@ class TextInput extends Component<*> {
 
   componentDidMount() {
     setSelection(this._node, this.props.selection);
+    if (document.activeElement === this._node) {
+      TextInputState._currentlyFocusedNode = this._node;
+    }
   }
 
   componentDidUpdate() {
@@ -180,28 +184,41 @@ class TextInput extends Component<*> {
       blurOnSubmit,
       clearTextOnFocus,
       onChangeText,
+      onLayout,
       onSelectionChange,
       onSubmitEditing,
       selection,
       selectTextOnFocus,
       spellCheck,
       /* react-native compat */
+      accessibilityViewIsModal,
+      allowFontScaling,
       caretHidden,
       clearButtonMode,
       dataDetectorTypes,
       disableFullscreenUI,
       enablesReturnKeyAutomatically,
+      hitSlop,
       inlineImageLeft,
       inlineImagePadding,
+      inputAccessoryViewID,
       keyboardAppearance,
+      needsOffscreenAlphaCompositing,
+      onAccessibilityTap,
       onContentSizeChange,
       onEndEditing,
+      onMagicTap,
       onScroll,
+      removeClippedSubviews,
+      renderToHardwareTextureAndroid,
       returnKeyLabel,
       returnKeyType,
+      scrollEnabled,
       selectionColor,
       selectionState,
+      shouldRasterizeIOS,
       textBreakStrategy,
+      textContentType,
       underlineColorAndroid,
       /* eslint-enable */
       ...otherProps
@@ -263,7 +280,7 @@ class TextInput extends Component<*> {
 
   _handleBlur = e => {
     const { onBlur } = this.props;
-    TextInputState.blurTextInput(this._node);
+    TextInputState._currentlyFocusedNode = null;
     if (onBlur) {
       onBlur(e);
     }
@@ -278,12 +295,13 @@ class TextInput extends Component<*> {
     if (onChangeText) {
       onChangeText(text);
     }
+    this._handleSelectionChange(e);
   };
 
   _handleFocus = e => {
     const { clearTextOnFocus, onFocus, selectTextOnFocus } = this.props;
     const node = this._node;
-    TextInputState.focusTextInput(this._node);
+    TextInputState._currentlyFocusedNode = this._node;
     if (onFocus) {
       onFocus(e);
     }
@@ -372,6 +390,8 @@ class TextInput extends Component<*> {
 
     if (!e.isDefaultPrevented() && e.which === 13 && !e.shiftKey) {
       if ((blurOnSubmit || !multiline) && onSubmitEditing) {
+        // prevent "Enter" from inserting a newline
+        e.preventDefault();
         e.nativeEvent = { target: e.target, text: e.target.value };
         onSubmitEditing(e);
       }
@@ -406,7 +426,7 @@ class TextInput extends Component<*> {
 const styles = StyleSheet.create({
   initial: {
     MozAppearance: 'textfield',
-    appearance: 'none',
+    WebkitAppearance: 'none',
     backgroundColor: 'transparent',
     borderColor: 'black',
     borderRadius: 0,

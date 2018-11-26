@@ -5,7 +5,6 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @providesModule Picker
  * @flow
  */
 
@@ -19,11 +18,12 @@ import StyleSheetPropType from '../../modules/StyleSheetPropType';
 import StyleSheet from '../StyleSheet';
 import TextPropTypes from '../Text/TextPropTypes';
 import { arrayOf, bool, func, number, oneOfType, string } from 'prop-types';
+import ViewPropTypes, { type ViewProps } from '../ViewPropTypes';
 
 const pickerStyleType = StyleSheetPropType(PickerStylePropTypes);
 
-type Props = {
-  children?: Array<typeof PickerItem>,
+type Props = ViewProps & {
+  children?: PickerItem | Array<typeof PickerItem>,
   enabled?: boolean,
   onValueChange?: Function,
   selectedValue?: number | string,
@@ -37,7 +37,8 @@ type Props = {
 
 class Picker extends Component<Props> {
   static propTypes = {
-    children: arrayOf(PickerItemPropType),
+    ...ViewPropTypes,
+    children: oneOfType([PickerItemPropType, arrayOf(PickerItemPropType)]),
     enabled: bool,
     onValueChange: func,
     selectedValue: oneOfType([number, string]),
@@ -57,8 +58,10 @@ class Picker extends Component<Props> {
       /* eslint-disable */
       itemStyle,
       mode,
-      prompt
+      prompt,
+      onValueChange,
       /* eslint-enable */
+      ...otherProps
     } = this.props;
 
     return createElement('select', {
@@ -67,7 +70,8 @@ class Picker extends Component<Props> {
       onChange: this._handleChange,
       style: [styles.initial, style],
       testID,
-      value: selectedValue
+      value: selectedValue,
+      ...otherProps
     });
   }
 
