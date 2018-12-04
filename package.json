@@ -1,7 +1,7 @@
 {
   "private": true,
   "version": "0.9.8",
-  "name": "react-native-web-monorepo",
+  "name": "react-native-web",
   "scripts": {
     "clean": "del ./packages/*/dist",
     "compile": "npm-run-all clean -p \"compile:* -- {@}\" --",
